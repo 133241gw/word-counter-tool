@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Word Counter — Student Tools</title>
+  <meta name="description" content="Fast, accessible online word counter with character counts, reading time, copy & download. Perfect for students." />
+  <style>
+    :root{
+      --bg:#0f1724; --card:#0b1220; --muted:#9aa4b2; --accent:#7c3aed; --glass: rgba(255,255,255,0.03);
+      --success:#10b981; --danger:#ef4444;
+      font-synthesis: none;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial; background:linear-gradient(180deg,#071026 0%,#071a2a 100%); color:#e6eef6}
+    .wrap{max-width:960px;margin:36px auto;padding:20px}
+    header{display:flex;align-items:center;gap:16px}
+    .logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#2563eb);display:flex;align-items:center;justify-content:center;font-weight:700}
+    h1{margin:0;font-size:20px}
+    p.lead{margin:6px 0 18px;color:var(--muted)}
+
+    .card{background:var(--card);border-radius:12px;padding:14px;border:1px solid rgba(255,255,255,0.03);box-shadow:0 6px 18px rgba(8,12,20,0.6)}
+    .grid{display:grid;grid-template-columns:1fr 320px;gap:16px}
+
+    textarea{width:100%;min-height:320px;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:var(--glass);color:inherit;font-size:15px;resize:vertical}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    button,select{background:transparent;border:1px solid rgba(255,255,255,0.06);color:inherit;padding:8px 10px;border-radius:8px;cursor:pointer}
+    button.primary{background:linear-gradient(90deg,var(--accent),#2563eb);border:none;color:white}
+    .stats{display:flex;flex-direction:column;gap:8px}
+    .stat{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:8px;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent);border:1px solid rgba(255,255,255,0.02)}
+    .stat small{color:var(--muted)}
+    .small{font-size:13px;color:var(--muted)}
+
+    .footer{margin-top:14px;color:var(--muted);font-size:13px}
+
+    @media (max-width:880px){.grid{grid-template-columns:1fr;}.logo{width:48px;height:48px}}
+  .title { font-size: 42px; font-weight: 700; text-align: center; margin-bottom: 25px; color: #222; }
+.search-container input { margin-top: 18px !important; max-width: 320px !important; }
+</style>
+    <style>
+      body {
+        background: linear-gradient(to bottom, #ffffff 50%, #f0f0f0 50%);
+      }
+      .search-container {
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      .search-container input {
+        width: 80%;
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+      }
+    </style>
+  </head>
+<body>
+  <div class="search-container">
+    <input type="text" id="searchInput" placeholder="Search words or sentences..." oninput="highlightText()">
+  </div>
+  <div class="wrap">
+    <header>
+      <div class="logo">WT</div>
+      <div>
+        <h1 class="title">Word Counter Tool</h1>
+        <p class="lead">Fast counts for words, characters, sentences, estimated reading time — copy or download results.</p>
+      </div>
+    </header>
+
+    <main style="margin-top:18px">
+      <div class="grid">
+        <section>
+          <div class="card">
+            <label for="input" class="small">Paste your text below</label>
+            <textarea id="input" placeholder="Start typing or paste text..." aria-label="Text input for word counter"></textarea>
+
+            <div class="controls" style="margin-top:12px">
+              <button id="btn-copy">Copy</button>
+              <button id="btn-clear">Clear</button>
+              <button id="btn-download" class="primary">Download .txt</button>
+
+              <select id="stopwordOption" title="Exclude common stopwords">
+                <option value="none">Include all words</option>
+                <option value="exclude-common">Exclude common stopwords</option>
+              </select>
+
+              <button id="btn-uppercase">UPPERCASE</button>
+              <button id="btn-lowercase">lowercase</button>
+            </div>
+
+            <div class="footer small">Tip: select the "Exclude common stopwords" option to see 'content' word counts (useful for SEO & essays).</div>
+          </div>
+        </section>
+
+        <aside>
+          <div class="card stats" aria-live="polite">
+            <div class="stat"><div><strong id="words">0</strong><div class="small">Words</div></div><div class="small" id="words-detail">—</div></div>
+            <div class="stat"><div><strong id="chars">0</strong><div class="small">Characters (with spaces)</div></div><div class="small" id="chars-detail">—</div></div>
+            <div class="stat"><div><strong id="chars-nospace">0</strong><div class="small">Characters (no spaces)</div></div><div class="small">—</div></div>
+            <div class="stat"><div><strong id="sentences">0</strong><div class="small">Sentences</div></div><div class="small">—</div></div>
+            <div class="stat"><div><strong id="reading">0 min</strong><div class="small">Est. reading time (200 wpm)</div></div><div class="small">—</div></div>
+            <div class="stat"><div><strong id="unique">0</strong><div class="small">Unique words</div></div><div class="small">—</div></div>
+
+            <div style="margin-top:8px;border-top:1px dashed rgba(255,255,255,0.03);padding-top:8px">
+              <label class="small">Live search preview</label>
+              <div id="preview" class="small" style="min-height:44px;">—</div>
+            </div>
+          </div>
+
+          <div style="height:12px"></div>
+          <div class="card small">
+            <strong>Actions</strong>
+            <ul style="padding-left:18px;margin:8px 0">
+              <li>Copy to clipboard</li>
+              <li>Download as .txt</li>
+              <li>Convert case</li>
+              <li>Exclude stopwords</li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Utility: debounce
+    function debounce(fn, wait){let t;return function(...a){clearTimeout(t);t=setTimeout(()=>fn.apply(this,a),wait)}}
+
+    const input = document.getElementById('input');
+    const wordsEl = document.getElementById('words');
+    const charsEl = document.getElementById('chars');
+    const charsNoSpaceEl = document.getElementById('chars-nospace');
+    const sentencesEl = document.getElementById('sentences');
+    const readingEl = document.getElementById('reading');
+    const uniqueEl = document.getElementById('unique');
+    const preview = document.getElementById('preview');
+    const stopwordOption = document.getElementById('stopwordOption');
+
+    // Common English stopwords list (small & useful for student content). You can extend or replace for other languages.
+    const STOPWORDS = new Set((
+      'a,about,above,after,again,against,all,am,an,and,any,are,aren\'t,as,at,be,because,been,before,being,below,between,both,but,by,could,couldn\'t,did,didn\'t,do,does,doesn\'t,doing,don\'t,down,during,each,few,for,from,further,had,hadn\'t,has,hasn\'t,have,haven\'t,having,he,he\'d,he\'ll,he\'s,her,here,here\'s,hers,herself,him,himself,his,how,how\'s,i,i\'d,i\'ll,i\'m,i\'ve,if,in,into,is,isn\'t,it,it\'s,its,itself,let\'s,me,more,most,mustn\'t,my,myself,no,nor,not,of,off,on,once,only,or,other,ought,our,ours,ourselves,out,over,own,same,shan\'t,she,she\'d,she\'ll,she\'s,should,shouldn\'t,so,some,such,than,that,that\'s,the,their,theirs,them,themselves,then,there,there\'s,these,they,they\'d,they\'ll,they\'re,they\'ve,this,those,through,to,too,under,until,up,very,was,wasn\'t,we,we\'d,we\'ll,we\'re,we\'ve,were,weren\'t,what,what\'s,when,when\'s,where,where\'s,which,while,who,who\'s,whom,why,why\'s,with,won\'t,would,wouldn\'t,you,you\'d,you\'ll,you\'re,you\'ve,your,yours,yourself,yourselves'
+    ).split(','));
+
+    // Count words using Unicode-aware regex. Counts sequences of letters/numbers/apostrophes as words.
+    function extractWords(text){
+      if(!text) return [];
+      // Normalize newlines and unicode spaces
+      const cleaned = text.replace(/[\u2000-\u200B\uFEFF]/g, ' ');
+      // Match words: letters, numbers, apostrophes, underscores and hyphens considered part of words
+      const match = cleaned.match(/[\p{L}\p{N}][\p{L}\p{N}'_-]*/gu);
+      return match || [];
+    }
+
+    function countSentences(text){
+      if(!text) return 0;
+      // Simple sentence split by punctuation followed by space or linebreak. Not perfect but practical.
+      const parts = text.split(/[.!?]+(?=\s|$)/).map(s=>s.trim()).filter(Boolean);
+      return parts.length;
+    }
+
+    function updateAll(){
+      const text = input.value;
+      const words = extractWords(text);
+      const totalWords = words.length;
+      const chars = text.length;
+      const charsNoSpace = text.replace(/\s/g, '').length;
+      const sentences = countSentences(text);
+      const readingMins = totalWords === 0 ? 0 : Math.max(1, Math.round(totalWords / 200));
+
+      // Unique words (case-insensitive)
+      const unique = new Set(words.map(w=>w.toLowerCase()));
+
+      // If stopword exclusion selected, compute filtered count
+      let filteredCount = totalWords;
+      if(stopwordOption.value === 'exclude-common'){
+        filteredCount = words.filter(w=> !STOPWORDS.has(w.toLowerCase())).length;
+      }
+
+      wordsEl.textContent = filteredCount.toLocaleString();
+      charsEl.textContent = chars.toLocaleString();
+      charsNoSpaceEl.textContent = charsNoSpace.toLocaleString();
+      sentencesEl.textContent = sentences.toLocaleString();
+      readingEl.textContent = (Math.ceil(totalWords/200) || 0) + ' min';
+      uniqueEl.textContent = unique.size.toLocaleString();
+
+      // Preview: first 140 chars trimmed
+      const previewText = text.trim().slice(0,140) || '—';
+      preview.textContent = previewText + (text.length>140? '…':'');
+
+      // Update details small element
+      const wordsDetail = document.getElementById('words-detail');
+      if(stopwordOption.value === 'exclude-common'){
+        wordsDetail.textContent = `${totalWords.toLocaleString()} total, ${filteredCount.toLocaleString()} without stopwords`;
+      } else {
+        wordsDetail.textContent = `${totalWords.toLocaleString()} total`;
+      }
+
+      const charsDetail = document.getElementById('chars-detail');
+      charsDetail.textContent = `${charsNoSpace.toLocaleString()} without spaces`;
+    }
+
+    const updater = debounce(updateAll, 120);
+    input.addEventListener('input', updater);
+    stopwordOption.addEventListener('change', updateAll);
+
+    // Buttons
+    document.getElementById('btn-copy').addEventListener('click', async ()=>{
+      try{
+        await navigator.clipboard.writeText(input.value);
+        flash('Copied to clipboard');
+      }catch(e){
+        flash('Copy failed', true);
+      }
+    });
+
+    document.getElementById('btn-clear').addEventListener('click', ()=>{input.value=''; updateAll();});
+
+    document.getElementById('btn-download').addEventListener('click', ()=>{
+      const text = input.value || '';
+      const filename = 'text-' + new Date().toISOString().slice(0,19).replace(/[:T]/g,'-') + '.txt';
+      const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 1500);
+    });
+
+    document.getElementById('btn-uppercase').addEventListener('click', ()=>{input.value = input.value.toUpperCase(); updateAll();});
+    document.getElementById('btn-lowercase').addEventListener('click', ()=>{input.value = input.value.toLowerCase(); updateAll();});
+
+    // small flash message (temporary) - non-blocking
+    function flash(msg, isError=false){
+      const el = document.createElement('div');
+      el.textContent = msg; el.style.position='fixed'; el.style.right='18px'; el.style.bottom='18px'; el.style.padding='10px 14px'; el.style.borderRadius='10px';
+      el.style.background = isError ? 'linear-gradient(90deg,var(--danger),#ff7a7a)' : 'linear-gradient(90deg,var(--success),#34d399)';
+      el.style.color = '#052018'; el.style.fontWeight=700; el.style.zIndex=9999; document.body.appendChild(el);
+      setTimeout(()=>el.style.opacity='0.0',1200); setTimeout(()=>el.remove(),1700);
+    }
+
+    // Initialize
+    updateAll();
+
+    // Accessibility: keyboard shortcut Ctrl/Cmd+K clears selection and focuses input
+    window.addEventListener('keydown', (e)=>{
+      if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='k'){
+        e.preventDefault(); input.focus(); input.select();
+      }
+    });
+  </script>
+  <script>
+    function highlightText() {
+      const text = document.getElementById("textInput").value;
+      const search = document.getElementById("searchInput").value;
+      const output = document.getElementById("outputText");
+
+      if (!search) {
+        output.innerHTML = text;
+        return;
+      }
+
+      const regex = new RegExp(search, "gi");
+      const highlighted = text.replace(regex, match => `<mark>${match}</mark>`);
+
+      output.innerHTML = highlighted;
+    }
+  </script>
+</body>
+</html>
