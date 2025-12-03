@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://133241gw.github.io/word-counter-tool/sitemap.xml
